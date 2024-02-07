@@ -199,51 +199,54 @@ int main(int argc, char **argv) {
 
   move_group_gripper.execute(my_plan_gripper);
 
-//   // Retreat
+  // Retreat
 
-//   RCLCPP_INFO(LOGGER, "Retreat from object!");
+  RCLCPP_INFO(LOGGER, "Retreat from object!");
 
-//   std::vector<geometry_msgs::msg::Pose> retreat_waypoints;
-//   target_pose1.position.z += 0.03;
-//   retreat_waypoints.push_back(target_pose1);
+  std::vector<geometry_msgs::msg::Pose> retreat_waypoints;
+  target_pose1.position.z += 0.03;
+  retreat_waypoints.push_back(target_pose1);
 
-//   target_pose1.position.z += 0.03;
-//   retreat_waypoints.push_back(target_pose1);
+  target_pose1.position.z += 0.03;
+  retreat_waypoints.push_back(target_pose1);
 
-//   moveit_msgs::msg::RobotTrajectory trajectory_retreat;
+  target_pose1.position.z += 0.03;
+  retreat_waypoints.push_back(target_pose1);
 
-//   fraction = move_group_arm.computeCartesianPath(
-//       retreat_waypoints, eef_step, jump_threshold, trajectory_retreat);
+  moveit_msgs::msg::RobotTrajectory trajectory_retreat;
 
-//   move_group_arm.execute(trajectory_retreat);
+  fraction = move_group_arm.computeCartesianPath(
+      retreat_waypoints, eef_step, jump_threshold, trajectory_retreat);
 
-//   // Place
+  move_group_arm.execute(trajectory_retreat);
 
-//   RCLCPP_INFO(LOGGER, "Rotating Arm");
+  // Place
 
-//   current_state_arm = move_group_arm.getCurrentState(10);
-//   current_state_arm->copyJointGroupPositions(joint_model_group_arm,
-//                                              joint_group_positions_arm);
+  RCLCPP_INFO(LOGGER, "Rotating Arm");
 
-//   joint_group_positions_arm[0] = 1.57; // Shoulder Pan
+  current_state_arm = move_group_arm.getCurrentState(10);
+  current_state_arm->copyJointGroupPositions(joint_model_group_arm,
+                                             joint_group_positions_arm);
 
-//   move_group_arm.setJointValueTarget(joint_group_positions_arm);
+  joint_group_positions_arm[0] = 0.00; // Shoulder Pan
 
-//   success_arm = (move_group_arm.plan(my_plan_arm) ==
-//                  moveit::core::MoveItErrorCode::SUCCESS);
+  move_group_arm.setJointValueTarget(joint_group_positions_arm);
 
-//   move_group_arm.execute(my_plan_arm);
+  success_arm = (move_group_arm.plan(my_plan_arm) ==
+                 moveit::core::MoveItErrorCode::SUCCESS);
 
-//   // Open Gripper
+  move_group_arm.execute(my_plan_arm);
 
-//   RCLCPP_INFO(LOGGER, "Release Object!");
+  // Open Gripper
 
-//   move_group_gripper.setNamedTarget("gripper_open");
+  RCLCPP_INFO(LOGGER, "Release Object!");
 
-//   success_gripper = (move_group_gripper.plan(my_plan_gripper) ==
-//                      moveit::core::MoveItErrorCode::SUCCESS);
+  move_group_gripper.setNamedTarget("gripper_open");
 
-//   move_group_gripper.execute(my_plan_gripper);
+  success_gripper = (move_group_gripper.plan(my_plan_gripper) ==
+                     moveit::core::MoveItErrorCode::SUCCESS);
+
+  move_group_gripper.execute(my_plan_gripper);
 
   rclcpp::shutdown();
   return 0;
