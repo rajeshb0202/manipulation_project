@@ -217,7 +217,7 @@ int main(int argc, char **argv) {
         success_gripper = (move_group_gripper.plan(my_plan_gripper) ==
                          moveit::core::MoveItErrorCode::SUCCESS);
         move_group_gripper.execute(my_plan_gripper);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
          joint_group_positions_gripper[2] += movement_tolerance;
     }
 
@@ -230,7 +230,7 @@ int main(int argc, char **argv) {
 //   move_group_gripper.execute(my_plan_gripper);
 
 //   // Sleep for some seconds
-//   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
   // Retreat
 
