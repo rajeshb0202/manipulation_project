@@ -1,3 +1,5 @@
+
+#include <cmath>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 
@@ -5,6 +7,20 @@
 #include <moveit_msgs/msg/display_trajectory.hpp>
 
 static const rclcpp::Logger LOGGER = rclcpp::get_logger("move_group_demo");
+static const float object_width = 0.02;
+float movement_tolerance = 0.005;
+size_t num_steps = 3;
+float angle_to_rotate_radians = 0.0;
+
+float calc_gripper_value(float distance) {
+    float value =
+        ((-140840.9278) * powf(distance, 5.0) +
+         (+22667.9431) * powf(distance, 4.0) +
+         (-1551.6277) * powf(distance, 3.0) + (+38.2691) * powf(distance, 2.0) +
+         (-8.0630) * powf(distance, 1.0) + (+0.8047) * powf(distance, 0.0));
+    return value;
+  }
+
 
 int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
@@ -140,8 +156,7 @@ int main(int argc, char **argv) {
   target_pose1.orientation.y = 0.00;
   target_pose1.orientation.z = 0.00;
   target_pose1.orientation.w = 0.00;
-  target_pose1.position.x = 0.343;
-  target_pose1.position.y = 0.0;
+  target_pose1.position.x = 0.3405;
   target_pose1.position.z = 0.264;
   move_group_arm.setPoseTarget(target_pose1);
 
@@ -150,6 +165,7 @@ int main(int argc, char **argv) {
 
   move_group_arm.execute(my_plan_arm);
   RCLCPP_INFO(LOGGER, "reached pregrasp position successfully");
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   // Open Gripper
 
@@ -187,17 +203,34 @@ int main(int argc, char **argv) {
       approach_waypoints, eef_step, jump_threshold, trajectory_approach);
 
   move_group_arm.execute(trajectory_approach);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   // Close Gripper
 
   RCLCPP_INFO(LOGGER, "Close Gripper!");
+  auto gripper_value = calc_gripper_value(object_width);
+  joint_group_positions_gripper[2] = gripper_value - (num_steps +1)*movement_tolerance;
+  for (int i = 0; i < num_steps; i++)
+    {
+        RCLCPP_INFO(LOGGER, "closing the gripper in steps!");
+        move_group_gripper.setJointValueTarget(joint_group_positions_gripper);
+        success_gripper = (move_group_gripper.plan(my_plan_gripper) ==
+                         moveit::core::MoveItErrorCode::SUCCESS);
+        move_group_gripper.execute(my_plan_gripper);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+         joint_group_positions_gripper[2] += movement_tolerance;
+    }
 
-  move_group_gripper.setNamedTarget("gripper_cloase");
+//   joint_group_positions_gripper[2] = 0.90;
+//   move_group_gripper.setJointValueTarget(joint_group_positions_gripper);
 
-  success_gripper = (move_group_gripper.plan(my_plan_gripper) ==
-                     moveit::core::MoveItErrorCode::SUCCESS);
+//   success_gripper = (move_group_gripper.plan(my_plan_gripper) ==
+//                      moveit::core::MoveItErrorCode::SUCCESS);
 
-  move_group_gripper.execute(my_plan_gripper);
+//   move_group_gripper.execute(my_plan_gripper);
+
+//   // Sleep for some seconds
+//   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
   // Retreat
 
@@ -228,7 +261,7 @@ int main(int argc, char **argv) {
   current_state_arm->copyJointGroupPositions(joint_model_group_arm,
                                              joint_group_positions_arm);
 
-  joint_group_positions_arm[0] = 0.00; // Shoulder Pan
+  joint_group_positions_arm[0] = angle_to_rotate_radians; // Shoulder Pan
 
   move_group_arm.setJointValueTarget(joint_group_positions_arm);
 
